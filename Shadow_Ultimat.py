@@ -27,7 +27,7 @@ from ..inline.types import InlineCall
 from ..types import SelfUnload
 
 # Настройка логирования
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Shadow_Ultimat")
 
 @loader.tds
 class Shadow_Ultimat(loader.Module):
@@ -43,19 +43,36 @@ class Shadow_Ultimat(loader.Module):
         self.prefix = self.db.get("hikka.main", "command_prefix", None) or self.db.get(
             "heroku.main", "command_prefix", "."
         )
-        self.shadowlib = await self.import_lib(
-            "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/lib/shadowlib.py",
-            suspend_on_error=True,
-        )
 
     def version_history(self):
         return self.strings["version_history"]
 
     async def check_version(self):
-        return await self.shadowlib.check_version()
+        try:
+            url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
+            with urllib.request.urlopen(url) as response:
+                content = response.read().decode('utf-8')
+                match = re.search(r'__version__\s*=\s*\(([^)]+)\)', content)
+                if match:
+                    remote_version = tuple(map(int, match.group(1).split(',')))
+                    return remote_version
+        except Exception as e:
+            logger.error(f"Failed to check version: {e}")
+        return None
 
     async def update_module(self):
-        await self.shadowlib.update_module(self.client, __file__, self.strings)
+        try:
+            url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
+            with urllib.request.urlopen(url) as response:
+                new_content = response.read().decode('utf-8')
+            with open(__file__, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            await self.client.send_message("me", self.strings["update_success"])
+            # Reload module if possible
+            # Assuming self.allmodules is available
+            await self.allmodules.reload("Shadow_Ultimat")
+        except Exception as e:
+            await self.client.send_message("me", self.strings["update_failed"].format(str(e)))
 
     async def версияcmd(self, message):
         """Show module version and history."""
