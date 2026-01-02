@@ -49,7 +49,6 @@ class Shadow_Ultimat(loader.Module):
             suspend_on_error=True,
         )
         await self.shadowlib.only_legacy()
-        await self.shadowlib.only_legacy()
 
     async def bfgb_farmcmd(self, message):
         """Команда для начала фарма Бфгб."""

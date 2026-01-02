@@ -7,7 +7,6 @@ import logging
 import typing
 
 from ... import loader, utils
-from ..types import SelfUnload
 
 logger = logging.getLogger("ShadowLib")
 
@@ -21,17 +20,11 @@ class ShadowLib(loader.Library):
         "name": "ShadowLib",
         "desc": "Custom library for Shadow modules.",
         "request_join_reason": "Stay tuned for updates.",
-        "not_legacy": "The module is supported only on <a href='https://github.com/Crayz310/Legacy'>{label}</a>",
     }
 
     async def init(self):
         # Initialize custom classes here as needed
         pass
-
-    @classmethod
-    async def only_legacy(cls):
-        if not __package__.startswith("legacy"):
-            raise SelfUnload("The module is supported ONLY for Legacy userbot")
 
     def unload_lib(self, name: str):
         instance = self.lookup(name)
