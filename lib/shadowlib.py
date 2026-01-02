@@ -84,3 +84,7 @@ class VersionUtils:
     def version_history(self):
         # Moved to module strings
         return {}
+
+
+def register():
+    return ShadowLib()
