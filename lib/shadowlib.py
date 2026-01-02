@@ -12,7 +12,8 @@ import typing
 import re
 import html
 
-from heroku.loader import loader, utils
+from .. import loader, utils
+from ..types import SelfUnload
 
 logger = logging.getLogger("ShadowLib")
 
