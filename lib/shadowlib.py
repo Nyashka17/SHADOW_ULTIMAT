@@ -91,4 +91,8 @@ class ShadowLib(loader.Library):
         return False
     # Add custom classes and functions here as needed
 
+
+def register(name):
+    return ShadowLib()
+
     
