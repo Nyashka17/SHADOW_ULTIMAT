@@ -22,7 +22,7 @@ import html
 from telethon.tl.functions.messages import ReadMentionsRequest
 from telethon.tl.functions.channels import InviteToChannelRequest, EditAdminRequest
 from telethon.tl.types import ChatAdminRights
-from .. import loader, utils
+
 from ..inline.types import InlineCall
 from ..types import SelfUnload
 
