@@ -9,7 +9,7 @@
 __version__ = (7, 7, 7, 0, 2, 4)
 # meta developer: @shadow_mod777
 # scope: disable_onload_docs
-# packurl: https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/refs/heads/main/Shadow_Ultimat.yml
+# packurl: https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/refs/heads/main/tr/Shadow_Ultimat.yml
 
 import logging
 import json
@@ -45,9 +45,10 @@ class Shadow_Ultimat(loader.Module):
         self.client = client
         self.db = db
         self.shadowlib = await self.import_lib(
-            "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/shadowlib.py",
+            "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/lib/shadowlib.py",
             suspend_on_error=True,
         )
+        await self.shadowlib.only_legacy()
         await self.shadowlib.only_legacy()
 
     async def bfgb_farmcmd(self, message):
