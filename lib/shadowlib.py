@@ -32,10 +32,6 @@ class ShadowLib(loader.Library):
     def register(cls, name):
         return cls()
 
-    async def init(self):
-        # Initialize custom classes here as needed
-        pass
-
     def unload_lib(self, name: str):
         instance = self.lookup(name)
         if isinstance(instance, loader.Library):
