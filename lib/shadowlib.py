@@ -18,31 +18,8 @@ from ..types import SelfUnload
 logger = logging.getLogger("ShadowLib")
 
 
-class ShadowLib(loader.Library):
+class ShadowLib:
     """Custom library for Shadow modules."""
-
-    developer = "@shadow_mod777"
-
-    strings = {
-        "name": "ShadowLib",
-        "desc": "Custom library for Shadow modules.",
-        "request_join_reason": "Stay tuned for updates.",
-    }
-
-    def unload_lib(self, name: str):
-        instance = self.lookup(name)
-        if isinstance(instance, loader.Library):
-            self.allmodules.libraries.remove(instance)
-            logger.info(f"Unloaded library: {name}")
-            return True
-        return False
-
-    # Add custom classes and functions here as needed
-
-    @classmethod
-    async def only_legacy(cls):
-        if not __package__.startswith("legacy"):
-            raise loader.SelfUnload("The module is supported ONLY for Legacy userbot")
 
     def version_history(self):
         # Moved to module strings
@@ -74,8 +51,6 @@ class ShadowLib(loader.Library):
             await self.allmodules.reload("Shadow_Ultimat")
         except Exception as e:
             await client.send_message("me", strings["update_failed"].format(str(e)))
-
-    # Add custom classes and functions here as needed
 
 
 def register(name):
