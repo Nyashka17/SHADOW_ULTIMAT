@@ -12,7 +12,8 @@ import typing
 import re
 import html
 
-from ... import loader, utils
+import heroku.loader as loader
+import heroku.utils as utils
 
 logger = logging.getLogger("ShadowLib")
 
