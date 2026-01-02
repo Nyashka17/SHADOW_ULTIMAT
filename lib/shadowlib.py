@@ -48,12 +48,8 @@ class ShadowLib(loader.Library):
             raise SelfUnload("The module is supported ONLY for Legacy userbot")
 
     def version_history(self):
-        return {
-            "7.7.7.0.2.4": "Initial release with auto farm BFGB.",
-            "7.7.7.0.2.3": "Added shadowlib support.",
-            "7.7.7.0.2.2": "Removed Legacy compatibility.",
-            # Add more versions as needed
-        }
+        # Moved to module strings
+        return {}
 
     async def check_version(self):
         try:

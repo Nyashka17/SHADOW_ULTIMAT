@@ -49,7 +49,7 @@ class Shadow_Ultimat(loader.Module):
         )
 
     def version_history(self):
-        return self.shadowlib.version_history()
+        return self.strings["version_history"]
 
     async def check_version(self):
         return await self.shadowlib.check_version()
@@ -113,3 +113,12 @@ class Shadow_Ultimat(loader.Module):
     async def update_callback(self, call: InlineCall):
         await call.edit(self.strings["updating"])
         await self.update_module()
+
+    async def cleardbcmd(self, message):
+        """Clear module database."""
+        # Clear all keys related to this module
+        module_prefix = self.__class__.__name__.lower()
+        keys_to_remove = [k for k in self.db if k.startswith(module_prefix)]
+        for k in keys_to_remove:
+            del self.db[k]
+        await utils.answer(message, self.strings["db_cleared"])
