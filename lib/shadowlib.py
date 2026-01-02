@@ -29,6 +29,10 @@ class ShadowLib(loader.Library):
         "request_join_reason": "Stay tuned for updates.",
     }
 
+    @classmethod
+    def register(cls, name):
+        return cls()
+
     async def init(self):
         # Initialize custom classes here as needed
         pass
