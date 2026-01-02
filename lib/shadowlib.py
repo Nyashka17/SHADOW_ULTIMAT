@@ -12,6 +12,13 @@ import typing
 import re
 import html
 
+from telethon.errors.rpcerrorlist import (
+    UserNotParticipantError,
+    HideRequesterMissingError,
+)
+from telethon.functions import messages, channels
+from telethon import types
+
 from .. import loader, utils
 from ..types import SelfUnload
 
@@ -30,7 +37,7 @@ class ShadowLib(loader.Library):
     }
 
     async def init(self):
-        pass
+        self.version = VersionUtils()
 
     def unload_lib(self, name: str):
         instance = self.lookup(name)
@@ -40,17 +47,13 @@ class ShadowLib(loader.Library):
             return True
         return False
 
-    # Add custom classes and functions here as needed
-
     @classmethod
     async def only_legacy(cls):
         if not __package__.startswith("legacy"):
             raise loader.SelfUnload("The module is supported ONLY for Legacy userbot")
 
-    def version_history(self):
-        # Moved to module strings
-        return {}
 
+class VersionUtils:
     async def check_version(self):
         try:
             url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
@@ -78,10 +81,6 @@ class ShadowLib(loader.Library):
         except Exception as e:
             await client.send_message("me", strings["update_failed"].format(str(e)))
 
-    # Add custom classes and functions here as needed
-
-
-def register(name):
-    return ShadowLib()
-
-    
+    def version_history(self):
+        # Moved to module strings
+        return {}
