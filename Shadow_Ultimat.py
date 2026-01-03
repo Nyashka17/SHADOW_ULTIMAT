@@ -34,9 +34,7 @@ logger = logging.getLogger("Shadow_Ultimat")
 class Shadow_Ultimat(loader.Module):
     """Афто фарм Бфгб от #тени"""
 
-    strings = {
-        name: "Shadow_Ultimat",
-    }
+    strings = {}
 
     def __init__(self):
         self.config = loader.ModuleConfig(
