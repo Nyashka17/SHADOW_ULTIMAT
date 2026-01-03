@@ -6,7 +6,7 @@
 # ╚═════╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚══╝╚══╝ █████╗╚═╝     ╚═╝ ╚═════╝ ╚═════╝   ╚═╝     ╚═╝     ╚═╝   
 
 
-__version__ = (7, 7, 7, 0, 2, 4)
+__version__ = (7, 7, 7, 0, 0, 1)
 # meta developer: @shadow_mod777
 # scope: disable_onload_docs
 # packurl: https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/refs/heads/main/tr/Shadow_Ultimat.yml
@@ -24,7 +24,6 @@ from telethon.tl.functions.channels import InviteToChannelRequest, EditAdminRequ
 from telethon.tl.types import ChatAdminRights
 
 from ..inline.types import InlineCall
-from ..types import SelfUnload
 from .. import loader, utils
 
 # Настройка логирования
@@ -35,114 +34,132 @@ logger = logging.getLogger("Shadow_Ultimat")
 class Shadow_Ultimat(loader.Module):
     """Афто фарм Бфгб от #тени"""
 
-    strings = {}
-
-    def __init__(self):
-        self.config = loader.ModuleConfig(
-            loader.ConfigValue(
-                "example_config",
-                "default_value",
-                "Example configuration value",
-                validator=loader.validators.String()
-            )
-        )
+    strings = {
+        "name": "Shadow_Ultimat",  
+    }
 
     async def client_ready(self, client, db):
-        self.client = client
-        self.db = db
+        self._client = client
+        self._db = db
+        self.shadowlib = await self.import_lib(
+            "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/refs/heads/main/lib/shadowlib.py",
+            suspend_on_error=True,
+        ),
         self.prefix = self.db.get("hikka.main", "command_prefix", None) or self.db.get(
             "heroku.main", "command_prefix", "."
         )
 
-    async def check_version(self):
-        try:
-            url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
-            with urllib.request.urlopen(url) as response:
-                content = response.read().decode('utf-8')
-                match = re.search(r'__version__\s*=\s*\(([^)]+)\)', content)
-                if match:
-                    remote_version = tuple(map(int, match.group(1).split(',')))
-                    return remote_version
-        except Exception as e:
-            logger.error(f"Failed to check version: {e}")
-        return None
-
-    async def update_module(self):
-        try:
-            url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
-            with urllib.request.urlopen(url) as response:
-                new_content = response.read().decode('utf-8')
-            with open(__file__, 'w', encoding='utf-8') as f:
-                f.write(new_content)
-            await self.client.send_message("me", self.strings["update_success"])
-            # Reload module if possible
-            # Assuming self.allmodules is available
-            await self.allmodules.reload("Shadow_Ultimat")
-        except Exception as e:
-            await self.client.send_message("me", self.strings["update_failed"].format(str(e)))
-
+ 
     async def версияcmd(self, message):
-        """Show module version and history."""
-        current = '.'.join(map(str, __version__))
-        desc = self.strings["description"]
-        text = f"{self.strings['current_version'].format(current)}\n{desc}\n\n"
-
-        remote = await self.check_version()
-        if remote and remote > __version__:
-            remote_str = '.'.join(map(str, remote))
-            text += f"{self.strings['update_available'].format(remote_str)}\n"
-            # Add update button
-            await self.inline.form(
-                text=text,
-                message=message,
-                reply_markup=[
-                    [{"text": "Update", "callback": self.update_callback}],
-                    [{"text": self.strings["version_history"], "callback": self.history_callback, "args": (0,)}],
-                ]
-            )
+        """менеджер версиями."""
+        await self.show_version_info(message)
+    
+    async def show_version_info(self, message):
+        """Show version information with inline buttons."""
+        current_version = self.shadowlib[0].version.get_version()
+        latest_version = self.shadowlib[0].version.get_latest_version()
+        
+        # Check if update is available
+        update_available = self.shadowlib[0].version.is_update_available(current_version, latest_version)
+        
+        # Create version display
+        version_display = f"🇻‌🇪‌🇷‌🇸‌🇮‌🇴‌🇳‌: [{', '.join(map(str, self.shadowlib[0].version.get_version_tuple()))}]"
+        
+        if update_available:
+            status_text = f"♨️: Доступно обновление до {latest_version}!"
+            info_text = self.strings("version_update_info").format(version=latest_version)
+            version_info = self.shadowlib[0].version.get_version_info(latest_version, "ru")
         else:
-            text += self.strings["no_update"] + "\n"
-            await self.inline.form(
-                text=text,
-                message=message,
-                reply_markup=[
-                    [{"text": self.strings["version_history"], "callback": self.history_callback, "args": (0,)}],
-                ]
-            )
-
-    async def history_callback(self, call: InlineCall, page: int = 0):
-        history = self.strings["version_history"]
-        versions = list(history.keys())[::-1]  # Newest first
-        per_page = 5
-        start = page * per_page
-        end = start + per_page
-        current_versions = versions[start:end]
-
-        text = self.strings["version_history"] + ":\n\n"
-        for ver in current_versions:
-            text += f"<b>{ver}</b>: {history[ver]}\n"
-
-        buttons = []
-        if page > 0:
-            buttons.append({"text": self.strings["prev"], "callback": self.history_callback, "args": (page - 1,)})
-        if end < len(versions):
-            buttons.append({"text": self.strings["next"], "callback": self.history_callback, "args": (page + 1,)})
-        buttons.append({"text": self.strings["back"], "callback": self.back_to_version})
-
-        await call.edit(text, reply_markup=[buttons])
-
-    async def back_to_version(self, call: InlineCall):
-        await self.версияcmd(call.message)
-
-    async def update_callback(self, call: InlineCall):
-        await call.edit(self.strings["updating"])
-        await self.update_module()
-
-    async def cleardbcmd(self, message):
-        """Clear module database."""
-        # Clear all keys related to this module
-        module_prefix = self.__class__.__name__.lower()
-        keys_to_remove = [k for k in self.db if k.startswith(module_prefix)]
-        for k in keys_to_remove:
-            del self.db[k]
-        await utils.answer(message, self.strings["db_cleared"])
+            status_text = "✅: Актуальная версия!"
+            info_text = self.strings("version_info").format(version=current_version)
+            version_info = self.shadowlib[0].version.get_version_info(current_version, "ru")
+        
+        # Create message text
+        message_text = f"<blockquote>{version_display}</blockquote>\n\n{status_text}\n\n{info_text}\n\n{version_info}\n\n-- Хотите обновиться зайдите в раздел обновлений --</blockquote>"
+        
+        # Create inline buttons
+        buttons = [
+            [{"text": self.strings("updates_button"), "callback": self.show_updates}],
+            [{"text": self.strings("history_button"), "callback": self.show_history}]
+        ]
+        
+        await self.inline.form(
+            message=message,
+            text=message_text,
+            reply_markup=buttons,
+            **{"disable_security": True}
+        )
+    
+    async def show_updates(self, call: InlineCall):
+        """Show updates section."""
+        current_version = self.shadowlib[0].version.get_version()
+        latest_version = self.shadowlib[0].version.get_latest_version()
+        
+        update_available = self.shadowlib[0].version.is_update_available(current_version, latest_version)
+        
+        if update_available:
+            message_text = f"<blockquote>{self.strings('new_update_available')}</blockquote>\n\n{self.strings('use_button_below')} <i>⚜️ {latest_version} </i>⚜️ ..."
+            buttons = [
+                [{"text": self.strings("update_to_version").format(version=latest_version), "callback": self.perform_update}]
+            ]
+        else:
+            message_text = f"<blockquote>{self.strings('last_version')}</blockquote>\n\n{self.strings('no_update_needed')}"
+            buttons = []
+        
+        await call.edit(
+            text=message_text,
+            reply_markup=buttons
+        )
+    
+    async def show_history(self, call: InlineCall, page: int = 1):
+        """Show version history with pagination."""
+        version_data, current_page, total_pages = self.shadowlib[0].version.get_version_history(page)
+        
+        if not version_data:
+            message_text = self.strings("no_versions")
+            buttons = []
+        else:
+            tree_display = self.shadowlib[0].version.format_version_tree(version_data)
+            message_text = f"<blockquote>{self.strings('version_list')}</blockquote>\n\n{tree_display}\n\n{self.strings('page_info').format(current=current_page, total=total_pages)}"
+            
+            buttons = []
+            if total_pages > 1:
+                row = []
+                if current_page > 1:
+                    row.append({"text": self.strings("prev"), "callback": lambda: self.show_history(call, page - 1)})
+                if current_page < total_pages:
+                    row.append({"text": self.strings("next"), "callback": lambda: self.show_history(call, page + 1)})
+                if row:
+                    buttons.append(row)
+            
+            # Add version detail buttons
+            for ver in version_data:
+                buttons.append([{
+                    "text": self.strings("version_button").format(version=ver["version"]),
+                    "callback": lambda ver=ver: self.show_version_details(call, ver["version"])
+                }])
+        
+        await call.edit(
+            text=message_text,
+            reply_markup=buttons
+        )
+    
+    async def show_version_details(self, call: InlineCall, version: str):
+        """Show detailed information about a specific version."""
+        version_info = self.shadowlib[0].version.get_version_info(version, "ru")
+        message_text = f"<blockquote>{self.strings('version_details_info').format(version=version)}</blockquote>\n\n{version_info}"
+        
+        buttons = [[{"text": self.strings("back"), "callback": self.show_history}]]
+        
+        await call.edit(
+            text=message_text,
+            reply_markup=buttons
+        )
+    
+    async def perform_update(self, call: InlineCall):
+        """Perform the update (placeholder for actual update logic)."""
+        # This would contain the actual update logic
+        await call.edit("Updating...")
+        # Simulate update process
+        await asyncio.sleep(2)
+        await call.edit("Update completed!")
