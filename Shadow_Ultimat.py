@@ -30,12 +30,6 @@ from .. import loader, utils
 # Настройка логирования
 logger = logging.getLogger("Shadow_Ultimat")
 
-# Импорт ShadowLib
-try:
-    from .lib.shadowlib import ShadowLib
-except ImportError:
-    logger.warning("ShadowLib not found, using fallback")
-    ShadowLib = None
 
 @loader.tds
 class Shadow_Ultimat(loader.Module):
@@ -62,38 +56,28 @@ class Shadow_Ultimat(loader.Module):
 
     async def check_version(self):
         try:
-            if ShadowLib:
-                version_utils = ShadowLib().version
-                return await version_utils.check_version()
-            else:
-                # Fallback to original implementation
-                url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
-                with urllib.request.urlopen(url) as response:
-                    content = response.read().decode('utf-8')
-                    match = re.search(r'__version__\s*=\s*\(([^)]+)\)', content)
-                    if match:
-                        remote_version = tuple(map(int, match.group(1).split(',')))
-                        return remote_version
+            url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
+            with urllib.request.urlopen(url) as response:
+                content = response.read().decode('utf-8')
+                match = re.search(r'__version__\s*=\s*\(([^)]+)\)', content)
+                if match:
+                    remote_version = tuple(map(int, match.group(1).split(',')))
+                    return remote_version
         except Exception as e:
             logger.error(f"Failed to check version: {e}")
         return None
 
     async def update_module(self):
         try:
-            if ShadowLib:
-                version_utils = ShadowLib().version
-                await version_utils.update_module(self.client, __file__, self.strings)
-            else:
-                # Fallback to original implementation
-                url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
-                with urllib.request.urlopen(url) as response:
-                    new_content = response.read().decode('utf-8')
-                with open(__file__, 'w', encoding='utf-8') as f:
-                    f.write(new_content)
-                await self.client.send_message("me", self.strings["update_success"])
-                # Reload module if possible
-                # Assuming self.allmodules is available
-                await self.allmodules.reload("Shadow_Ultimat")
+            url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
+            with urllib.request.urlopen(url) as response:
+                new_content = response.read().decode('utf-8')
+            with open(__file__, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            await self.client.send_message("me", self.strings["update_success"])
+            # Reload module if possible
+            # Assuming self.allmodules is available
+            await self.allmodules.reload("Shadow_Ultimat")
         except Exception as e:
             await self.client.send_message("me", self.strings["update_failed"].format(str(e)))
 
