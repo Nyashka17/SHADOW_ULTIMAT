@@ -56,23 +56,26 @@ class Shadow_Ultimat(loader.Module):
     
     async def show_version_info(self, message):
         """Show version information with inline buttons."""
-        current_version = self.shadowlib[0].version.get_version()
-        latest_version = self.shadowlib[0].version.get_latest_version()
+        # Access the VersionUtils from the imported library
+        version_utils = self.shadowlib.version
+        
+        current_version = version_utils.get_version()
+        latest_version = version_utils.get_latest_version()
         
         # Check if update is available
-        update_available = self.shadowlib[0].version.is_update_available(current_version, latest_version)
+        update_available = version_utils.is_update_available(current_version, latest_version)
         
         # Create version display
-        version_display = f"🇻‌🇪‌🇷‌🇸‌🇮‌🇴‌🇳‌: [{', '.join(map(str, self.shadowlib[0].version.get_version_tuple()))}]"
+        version_display = f"🇻‌🇪‌🇷‌🇸‌🇮‌🇴‌🇳‌: [{', '.join(map(str, version_utils.get_version_tuple()))}]"
         
         if update_available:
             status_text = f"♨️: Доступно обновление до {latest_version}!"
             info_text = self.strings("version_update_info").format(version=latest_version)
-            version_info = self.shadowlib[0].version.get_version_info(latest_version, "ru")
+            version_info = version_utils.get_version_info(latest_version, "ru")
         else:
             status_text = "✅: Актуальная версия!"
             info_text = self.strings("version_info").format(version=current_version)
-            version_info = self.shadowlib[0].version.get_version_info(current_version, "ru")
+            version_info = version_utils.get_version_info(current_version, "ru")
         
         # Create message text
         message_text = f"<blockquote>{version_display}</blockquote>\n\n{status_text}\n\n{info_text}\n\n{version_info}\n\n-- Хотите обновиться зайдите в раздел обновлений --</blockquote>"
@@ -92,10 +95,11 @@ class Shadow_Ultimat(loader.Module):
     
     async def show_updates(self, call: InlineCall):
         """Show updates section."""
-        current_version = self.shadowlib[0].version.get_version()
-        latest_version = self.shadowlib[0].version.get_latest_version()
+        version_utils = self.shadowlib.version
+        current_version = version_utils.get_version()
+        latest_version = version_utils.get_latest_version()
         
-        update_available = self.shadowlib[0].version.is_update_available(current_version, latest_version)
+        update_available = version_utils.is_update_available(current_version, latest_version)
         
         if update_available:
             message_text = f"<blockquote>{self.strings('new_update_available')}</blockquote>\n\n{self.strings('use_button_below')} <i>⚜️ {latest_version} </i>⚜️ ..."
@@ -113,13 +117,14 @@ class Shadow_Ultimat(loader.Module):
     
     async def show_history(self, call: InlineCall, page: int = 1):
         """Show version history with pagination."""
-        version_data, current_page, total_pages = self.shadowlib[0].version.get_version_history(page)
+        version_utils = self.shadowlib.version
+        version_data, current_page, total_pages = version_utils.get_version_history(page)
         
         if not version_data:
             message_text = self.strings("no_versions")
             buttons = []
         else:
-            tree_display = self.shadowlib[0].version.format_version_tree(version_data)
+            tree_display = version_utils.format_version_tree(version_data)
             message_text = f"<blockquote>{self.strings('version_list')}</blockquote>\n\n{tree_display}\n\n{self.strings('page_info').format(current=current_page, total=total_pages)}"
             
             buttons = []
@@ -146,7 +151,8 @@ class Shadow_Ultimat(loader.Module):
     
     async def show_version_details(self, call: InlineCall, version: str):
         """Show detailed information about a specific version."""
-        version_info = self.shadowlib[0].version.get_version_info(version, "ru")
+        version_utils = self.shadowlib.version
+        version_info = version_utils.get_version_info(version, "ru")
         message_text = f"<blockquote>{self.strings('version_details_info').format(version=version)}</blockquote>\n\n{version_info}"
         
         buttons = [[{"text": self.strings("back"), "callback": self.show_history}]]
