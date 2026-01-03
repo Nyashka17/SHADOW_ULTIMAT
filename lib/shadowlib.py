@@ -86,5 +86,5 @@ class VersionUtils:
         return {}
 
 
-def register():
+def register(module_name=None):
     return ShadowLib()
