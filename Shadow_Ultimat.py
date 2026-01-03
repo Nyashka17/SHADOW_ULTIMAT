@@ -44,7 +44,7 @@ class Shadow_Ultimat(loader.Module):
         self.shadowlib = await self.import_lib(
             "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/refs/heads/main/lib/shadowlib.py",
             suspend_on_error=True,
-        ),
+        )
         self.prefix = self.db.get("hikka.main", "command_prefix", None) or self.db.get(
             "heroku.main", "command_prefix", "."
         )
