@@ -25,6 +25,7 @@ from telethon.tl.types import ChatAdminRights
 
 from ..inline.types import InlineCall
 from ..types import SelfUnload
+from .. import loader, utils
 
 # Настройка логирования
 logger = logging.getLogger("Shadow_Ultimat")
@@ -33,9 +34,17 @@ logger = logging.getLogger("Shadow_Ultimat")
 class Shadow_Ultimat(loader.Module):
     """Афто фарм Бфгб от #тени"""
 
-    strings = {
-        "name": "Shadow_Ultimat",
-    }
+    strings = {}
+
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            loader.ConfigValue(
+                "example_config",
+                "default_value",
+                "Example configuration value",
+                validator=loader.validators.String()
+            )
+        )
 
     async def client_ready(self, client, db):
         self.client = client
@@ -45,7 +54,13 @@ class Shadow_Ultimat(loader.Module):
         )
 
     def version_history(self):
-        return self.strings["version_history"]
+        return {
+            "7.7.7.0.2.4": "Initial release with auto farm functionality",
+            "7.7.7.0.2.3": "Bug fixes and improvements",
+            "7.7.7.0.2.2": "Added inline buttons and version checking",
+            "7.7.7.0.2.1": "Added database clearing functionality",
+            "7.7.7.0.2.0": "Initial development version",
+        }
 
     async def check_version(self):
         try:
