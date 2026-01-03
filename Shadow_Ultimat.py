@@ -53,15 +53,6 @@ class Shadow_Ultimat(loader.Module):
             "heroku.main", "command_prefix", "."
         )
 
-    def version_history(self):
-        return {
-            "7.7.7.0.2.4": "Initial release with auto farm functionality",
-            "7.7.7.0.2.3": "Bug fixes and improvements",
-            "7.7.7.0.2.2": "Added inline buttons and version checking",
-            "7.7.7.0.2.1": "Added database clearing functionality",
-            "7.7.7.0.2.0": "Initial development version",
-        }
-
     async def check_version(self):
         try:
             url = "https://raw.githubusercontent.com/Nyashka17/SHADOW_ULTIMAT/main/Shadow_Ultimat.py"
@@ -119,7 +110,7 @@ class Shadow_Ultimat(loader.Module):
             )
 
     async def history_callback(self, call: InlineCall, page: int = 0):
-        history = self.version_history()
+        history = self.strings["version_history"]
         versions = list(history.keys())[::-1]  # Newest first
         per_page = 5
         start = page * per_page
