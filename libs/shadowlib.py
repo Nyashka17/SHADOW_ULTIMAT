@@ -29,7 +29,7 @@ logger = logging.getLogger("ShadowLib")
 class ShadowLib(loader.Library):
     """Custom library for Shadow modules."""
 
-    developer = "custom.bot.tg@gmail.com"
+    developer = "@shadow_mod777"
 
     strings = {
         "name": "ShadowLib",
