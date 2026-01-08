@@ -53,7 +53,7 @@ class Shadow_Ultimat(loader.Module):
     @loader.command()
     async def версия(self, message):
         """Проверяет версию модуля и предлагает обновление"""
-        updates = await self.shadowlib.check_github_updates()
+        updates = await self.shadowlib.updater.check_github_updates()
 
         if updates['available']:
             # Показать inline форму
@@ -71,23 +71,23 @@ class Shadow_Ultimat(loader.Module):
                 ]
             )
         else:
-            current_version = await self.shadowlib.get_current_version()
+            current_version = self.shadowlib.version_mgr.get_current_version()
             await utils.answer(message, f"✅ Текущая версия: {current_version}\nОбновлений нет.")
 
     async def update_module_callback(self, call, version):
         """Callback для обновления модуля"""
         await utils.answer(call, "🔄 Обновляю модуль...")
 
-        result = await self.shadowlib.update_module(version)
+        result = await self.shadowlib.updater.update_module(version)
 
         await utils.answer(call, result)
 
     @loader.command()
     async def версии(self, message):
         """Панель управления версиями модуля"""
-        current_version = await self.shadowlib.get_current_version()
-        updates = await self.shadowlib.check_github_updates()
-        backups = self.shadowlib.get_available_backups()
+        current_version = self.shadowlib.version_mgr.get_current_version()
+        updates = await self.shadowlib.updater.check_github_updates()
+        backups = self.shadowlib.backuper.get_available_backups()
 
         text = f"📋 Управление версиями\n\nТекущая версия: {current_version}"
 
@@ -132,7 +132,7 @@ class Shadow_Ultimat(loader.Module):
 
     async def show_update_menu(self, call):
         """Показать меню обновления"""
-        updates = await self.shadowlib.check_github_updates()
+        updates = await self.shadowlib.updater.check_github_updates()
 
         if not updates['available']:
             await utils.answer(call, "✅ Обновлений нет")
@@ -157,8 +157,8 @@ class Shadow_Ultimat(loader.Module):
 
     async def show_versions_list(self, call, page=0):
         """Показать список доступных версий"""
-        versions = await self.shadowlib.get_available_versions()
-        current = await self.shadowlib.get_current_version()
+        versions = await self.shadowlib.github.get_available_versions()
+        current = self.shadowlib.version_mgr.get_current_version()
 
         if not versions:
             await utils.answer(call, "❌ Не удалось получить список версий")
@@ -212,7 +212,7 @@ class Shadow_Ultimat(loader.Module):
 
     async def show_version_details(self, call, version):
         """Показать детали версии"""
-        versions = await self.shadowlib.get_available_versions()
+        versions = await self.shadowlib.github.get_available_versions()
         version_info = next((v for v in versions if v['version'] == version), None)
 
         if not version_info:
@@ -245,13 +245,13 @@ class Shadow_Ultimat(loader.Module):
         """Установить выбранную версию"""
         await utils.answer(call, f"🔄 Устанавливаю версию {version}...")
 
-        result = await self.shadowlib.install_specific_version(version)
+        result = await self.shadowlib.updater.install_specific_version(version)
 
         await utils.answer(call, result)
 
     async def show_backups_menu(self, call):
         """Показать меню бэкапов"""
-        backups = self.shadowlib.get_available_backups()
+        backups = self.shadowlib.backuper.get_available_backups()
 
         if not backups:
             await utils.answer(call, "❌ Бэкапов не найдено")
@@ -282,14 +282,14 @@ class Shadow_Ultimat(loader.Module):
         """Откат к бэкапу"""
         await utils.answer(call, f"🔄 Выполняю откат к {backup_dir}...")
 
-        result = await self.shadowlib.rollback_to_backup(backup_dir)
+        result = await self.shadowlib.backuper.rollback_to_backup(backup_dir)
 
         await utils.answer(call, result)
 
     async def show_version_info(self, call):
         """Показать информацию о версии"""
-        current = await self.shadowlib.get_current_version()
-        backups = self.shadowlib.get_available_backups()
+        current = self.shadowlib.version_mgr.get_current_version()
+        backups = self.shadowlib.backuper.get_available_backups()
 
         text = f"ℹ️ Информация о версии\n\n📦 Текущая версия: {current}\n🔙 Бэкапов: {len(backups)}\n\nСхема версий: 7.7.7.X.X.X\nгде X изменяется последовательно"
 

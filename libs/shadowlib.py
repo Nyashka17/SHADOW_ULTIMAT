@@ -26,29 +26,11 @@ from ..types import SelfUnload
 logger = logging.getLogger("ShadowLib")
 
 
-class ShadowLib(loader.Library):
-    """Custom library for Shadow modules."""
+class UpdateManager:
+    """Менеджер обновлений модуля"""
 
-    developer = "@shadow_mod777"
-
-    strings = {
-        "name": "ShadowLib",
-        "desc": "Custom library for Shadow modules.",
-        "request_join_reason": "Stay tuned for updates.",
-    }
-
-    async def init(self):
+    def __init__(self):
         pass
-
-    def get_current_version(self):
-        """Получить текущую версию модуля"""
-        try:
-            # Импорт версии из основного модуля
-            from ..Shadow_Ultimat import __version__
-            return '.'.join(map(str, __version__))
-        except Exception as e:
-            logger.error(f"Error getting version: {e}")
-            return "unknown"
 
     async def check_github_updates(self):
         """Проверяет обновления на GitHub"""
@@ -72,6 +54,16 @@ class ShadowLib(loader.Library):
             logger.error(f"Error checking updates: {e}")
         return {'available': False}
 
+    def get_current_version(self):
+        """Получить текущую версию модуля"""
+        try:
+            # Импорт версии из основного модуля
+            from ..Shadow_Ultimat import __version__
+            return '.'.join(map(str, __version__))
+        except Exception as e:
+            logger.error(f"Error getting version: {e}")
+            return "unknown"
+
     def version_compare(self, v1, v2):
         """Сравнивает версии"""
         def parse_version(v):
@@ -81,6 +73,45 @@ class ShadowLib(loader.Library):
             return parse_version(v1) > parse_version(v2)
         except:
             return False
+
+    async def update_module(self, version, call=None):
+        """Обновляет модуль"""
+        try:
+            # Создать бэкап
+            backup = await self.create_backup()
+            if not backup:
+                return "❌ Не удалось создать резервную копию"
+
+            # Скачать файлы
+            if not await self.download_files(f"v{version}"):
+                return "❌ Не удалось скачать обновление"
+
+            # Перезагрузить модуль (если возможно)
+            # В Hikka это может потребовать перезапуска
+
+            return f"✅ Модуль обновлён до версии {version}\nРезервная копия: {backup}"
+
+        except Exception as e:
+            logger.error(f"Error updating module: {e}")
+            return f"❌ Ошибка обновления: {str(e)}"
+
+    async def install_specific_version(self, version):
+        """Установить конкретную версию"""
+        try:
+            # Создать бэкап
+            backup = await self.create_backup()
+            if not backup:
+                return "❌ Не удалось создать резервную копию"
+
+            # Скачать файлы указанной версии
+            if not await self.download_files(f"v{version}"):
+                return "❌ Не удалось скачать версию"
+
+            return f"✅ Версия {version} установлена\nРезервная копия: {backup}"
+
+        except Exception as e:
+            logger.error(f"Error installing version: {e}")
+            return f"❌ Ошибка установки: {str(e)}"
 
     async def create_backup(self):
         """Создаёт резервную копию"""
@@ -132,67 +163,12 @@ class ShadowLib(loader.Library):
             logger.error(f"Error downloading files: {e}")
             return False
 
-    async def update_module(self, version, call=None):
-        """Обновляет модуль"""
-        try:
-            # Создать бэкап
-            backup = await self.create_backup()
-            if not backup:
-                return "❌ Не удалось создать резервную копию"
 
-            # Скачать файлы
-            if not await self.download_files(f"v{version}"):
-                return "❌ Не удалось скачать обновление"
+class BackupManager:
+    """Менеджер резервных копий"""
 
-            # Перезагрузить модуль (если возможно)
-            # В Hikka это может потребовать перезапуска
-
-            return f"✅ Модуль обновлён до версии {version}\nРезервная копия: {backup}"
-
-        except Exception as e:
-            logger.error(f"Error updating module: {e}")
-            return f"❌ Ошибка обновления: {str(e)}"
-
-    async def get_available_versions(self):
-        """Получить список всех доступных версий с GitHub"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                url = "https://api.github.com/repos/Nyashka17/SHADOW_ULTIMAT/releases"
-                async with session.get(url) as resp:
-                    if resp.status == 200:
-                        releases = await resp.json()
-                        versions = []
-                        for release in releases:
-                            tag = release.get('tag_name', '').lstrip('v')
-                            if tag and self.is_valid_version(tag):
-                                versions.append({
-                                    'version': tag,
-                                    'name': release.get('name', ''),
-                                    'body': release.get('body', ''),
-                                    'published_at': release.get('published_at', ''),
-                                    'url': release.get('html_url', '')
-                                })
-                        # Сортировать по версии (новые сверху)
-                        versions.sort(key=lambda x: self.parse_version(x['version']), reverse=True)
-                        return versions
-        except Exception as e:
-            logger.error(f"Error getting versions: {e}")
-        return []
-
-    def is_valid_version(self, version_str):
-        """Проверить валидность версии (6 компонентов)"""
-        try:
-            parts = version_str.split('.')
-            return len(parts) == 6 and all(part.isdigit() for part in parts)
-        except:
-            return False
-
-    def parse_version(self, version_str):
-        """Парсить версию в tuple для сортировки"""
-        try:
-            return tuple(map(int, version_str.split('.')))
-        except:
-            return (0, 0, 0, 0, 0, 0)
+    def __init__(self):
+        pass
 
     def get_available_backups(self):
         """Получить список доступных бэкапов"""
@@ -238,20 +214,136 @@ class ShadowLib(loader.Library):
             logger.error(f"Error rolling back: {e}")
             return f"❌ Ошибка отката: {str(e)}"
 
-    async def install_specific_version(self, version):
-        """Установить конкретную версию"""
+    async def create_backup(self):
+        """Создаёт резервную копию"""
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_dir = f"sh_backup_{timestamp}"
+
         try:
-            # Создать бэкап
-            backup = await self.create_backup()
-            if not backup:
-                return "❌ Не удалось создать резервную копию"
+            os.makedirs(backup_dir, exist_ok=True)
 
-            # Скачать файлы указанной версии
-            if not await self.download_files(f"v{version}"):
-                return "❌ Не удалось скачать версию"
+            files_to_backup = [
+                'Shadow_Ultimat.py',
+                'libs/shadowlib.py',
+                'translations/Shadow_Ultimat.yml'
+            ]
 
-            return f"✅ Версия {version} установлена\nРезервная копия: {backup}"
+            for file_path in files_to_backup:
+                if os.path.exists(file_path):
+                    dest_path = os.path.join(backup_dir, file_path)
+                    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                    shutil.copy2(file_path, dest_path)
 
+            return backup_dir
         except Exception as e:
-            logger.error(f"Error installing version: {e}")
-            return f"❌ Ошибка установки: {str(e)}"
+            logger.error(f"Error creating backup: {e}")
+            return None
+
+
+class VersionManager:
+    """Менеджер версий"""
+
+    def __init__(self):
+        pass
+
+    def get_current_version(self):
+        """Получить текущую версию модуля"""
+        try:
+            # Импорт версии из основного модуля
+            from ..Shadow_Ultimat import __version__
+            return '.'.join(map(str, __version__))
+        except Exception as e:
+            logger.error(f"Error getting version: {e}")
+            return "unknown"
+
+    def version_compare(self, v1, v2):
+        """Сравнивает версии"""
+        def parse_version(v):
+            return tuple(map(int, v.split('.')))
+
+        try:
+            return parse_version(v1) > parse_version(v2)
+        except:
+            return False
+
+    def is_valid_version(self, version_str):
+        """Проверить валидность версии (6 компонентов)"""
+        try:
+            parts = version_str.split('.')
+            return len(parts) == 6 and all(part.isdigit() for part in parts)
+        except:
+            return False
+
+    def parse_version(self, version_str):
+        """Парсить версию в tuple для сортировки"""
+        try:
+            return tuple(map(int, version_str.split('.')))
+        except:
+            return (0, 0, 0, 0, 0, 0)
+
+
+class GitHubManager:
+    """Менеджер GitHub API"""
+
+    def __init__(self, client):
+        self._client = client
+
+    async def get_available_versions(self):
+        """Получить список всех доступных версий с GitHub"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                url = "https://api.github.com/repos/Nyashka17/SHADOW_ULTIMAT/releases"
+                async with session.get(url) as resp:
+                    if resp.status == 200:
+                        releases = await resp.json()
+                        versions = []
+                        for release in releases:
+                            tag = release.get('tag_name', '').lstrip('v')
+                            if tag and self.is_valid_version(tag):
+                                versions.append({
+                                    'version': tag,
+                                    'name': release.get('name', ''),
+                                    'body': release.get('body', ''),
+                                    'published_at': release.get('published_at', ''),
+                                    'url': release.get('html_url', '')
+                                })
+                        # Сортировать по версии (новые сверху)
+                        versions.sort(key=lambda x: self.parse_version(x['version']), reverse=True)
+                        return versions
+        except Exception as e:
+            logger.error(f"Error getting versions: {e}")
+        return []
+
+    def is_valid_version(self, version_str):
+        """Проверить валидность версии (6 компонентов)"""
+        try:
+            parts = version_str.split('.')
+            return len(parts) == 6 and all(part.isdigit() for part in parts)
+        except:
+            return False
+
+    def parse_version(self, version_str):
+        """Парсить версию в tuple для сортировки"""
+        try:
+            return tuple(map(int, version_str.split('.')))
+        except:
+            return (0, 0, 0, 0, 0, 0)
+
+
+class ShadowLib(loader.Library):
+    """Custom library for Shadow modules."""
+
+    developer = "custom.bot.tg@gmail.com"
+
+    strings = {
+        "name": "ShadowLib",
+        "desc": "Custom library for Shadow modules.",
+        "request_join_reason": "Stay tuned for updates.",
+    }
+
+    async def init(self):
+        # Создание экземпляров утилитарных классов по паттерну XDLib
+        self.updater = UpdateManager()
+        self.backuper = BackupManager()
+        self.version_mgr = VersionManager()
+        self.github = GitHubManager(self._client)
